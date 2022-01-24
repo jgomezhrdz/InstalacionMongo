@@ -5,6 +5,7 @@ USO="Uso : install.sh [opciones]
 Ejemplo:
 install.sh -u administrador -p password [-n 27017]
  Opciones:
+    -f archivo de configuración
     -u usuario
     -p password
     -n numero de puerto (opcional)
@@ -19,7 +20,7 @@ function ayuda() {
         fi
 }
 # Gestionar los argumentos
-while getopts ":u:p:n:a" OPCION
+while getopts ":u:p:n:f:a" OPCION
 do
     case ${OPCION} in
         u ) USUARIO=$OPTARG
@@ -28,21 +29,30 @@ do
            echo "Parametro PASSWORD establecido";;
         n ) PUERTO_MONGOD=$OPTARG
            echo "Parametro PUERTO_MONGOD establecido con '${PUERTO_MONGOD}'";; 
+        f ) ARCHIVO = $OPTARG
         a ) ayuda; exit 0;;
         : ) ayuda "Falta el parametro para -$OPTARG"; exit 1;; \?) ayuda "La opcion no existe : $OPTARG"; exit 1;;
     esac
 done
-if [ -z ${USUARIO} ]
-    then
-     ayuda "El usuario (-u) debe ser especificado"; exit 1
+if [[ -z ${ARCHIVO} ]]; then 
+    if [ -z ${USUARIO} ]
+        then
+            ayuda "El usuario (-u) debe ser especificado"; exit 1
+        fi
+    if [ -z ${PASSWORD} ] 
+        then
+            echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | tee /etc/apt/sources.list.d/mongodb.list
+        fi
+    if [ -z ${PUERTO_MONGOD} ]
+        then
+            PUERTO_MONGOD=27017
+        fi
+else
+    if [[ -f ${ARCHIVO} ]]; then
+    
+    else
+        echo "el archivo de configuración no tiene el formato correcto"  
     fi
-if [ -z ${PASSWORD} ] 
-    then
-        echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | tee /etc/apt/sources.list.d/mongodb.list
-fi
-if [ -z ${PUERTO_MONGOD} ]
-    then
-        PUERTO_MONGOD=27017
 fi
 
 # Preparar el repositorio (apt-get) de mongodb añadir su clave apt
@@ -96,6 +106,7 @@ logger "Esperando a que mongod responda..."
 sleep 15
 # Crear usuario con la password proporcionada como parametro
 mongo admin << CREACION_DE_USUARIO
+db.auth("administrador", "password")
 db.createUser(
     {
         user: "${USUARIO}",

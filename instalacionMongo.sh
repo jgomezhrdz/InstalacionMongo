@@ -29,7 +29,8 @@ do
            echo "Parametro PASSWORD establecido";;
         n ) PUERTO_MONGOD=$OPTARG
            echo "Parametro PUERTO_MONGOD establecido con '${PUERTO_MONGOD}'";;
-        f ) ARCHIVO = $OPTARG
+        f ) ARCHIVO=$OPTARG
+           echo "PARAMETRO DE ARCHIVO EXTABLECIDO CON '${ARCHIVO}'";;
         a ) ayuda; exit 0;;
         : ) ayuda "Falta el parametro para -$OPTARG"; exit 1;; \?) ayuda "La opcion no existe : $OPTARG"; exit 1;;
     esac
@@ -38,17 +39,11 @@ done
 if [[ ! -z ${ARCHIVO} ]]; then
     if [[ -f ${ARCHIVO} ]]; then
         extension="${ARCHIVO##*.}"
-        if [[ extension = "ini" ]]; then
+        if [[ ${extension} == "ini" ]]; then
             source $ARCHIVO
-            if [[ ! -z ${user}]]; then 
-                USUARIO = $user
-            fi
-            if [[ ! -z ${password}]]; then 
-                PASSWORD = $password
-            fi
-            if [[ ! -z ${port} ]]; then 
-                PORT = $port 
-            fi
+            USUARIO=$user
+            PASSWORD=$password
+            PUERTO_MONGOD=$port 
         else
             echo "el archivo de configuración no tiene el formato correcto"
         fi
@@ -56,6 +51,7 @@ if [[ ! -z ${ARCHIVO} ]]; then
         echo "el archivo de configuración es incorrecto"
     fi
 fi
+
 if [ -z ${USUARIO} ]
     then
         ayuda "El usuario (-u) debe ser especificado"; exit 1
@@ -120,7 +116,6 @@ logger "Esperando a que mongod responda..."
 sleep 15
 # Crear usuario con la password proporcionada como parametro
 mongo admin << CREACION_DE_USUARIO
-db.auth("administrador", "password")
 db.createUser(
     {
         user: "${USUARIO}",

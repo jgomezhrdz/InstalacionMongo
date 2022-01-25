@@ -111,10 +111,21 @@ security:
 MONGOD_CONF
 ) > /etc/mongod.conf
 # Reiniciar el servicio de mongod para aplicar la nueva configuracion
-systemctl restart mongod
+systemctl restart mongod 
+# &&
+i=0
+while [[ $i -le 10 ]] ; do
+    if nc -z localhost $PUERTO_MONGOD && [[ $(systemctl is-active mongod) == "active" ]];
+    then
+        break
+    fi
+    sleep 1
+    ((i=i+1))
+done
+
 logger "Esperando a que mongod responda..."
-sleep 15
-# Crear usuario con la password proporcionada como parametro
+
+#Si el servicio no está corriendo
 mongo admin << CREACION_DE_USUARIO
 db.createUser(
     {

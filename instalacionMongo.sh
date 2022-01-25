@@ -112,9 +112,12 @@ MONGOD_CONF
 ) > /etc/mongod.conf
 # Reiniciar el servicio de mongod para aplicar la nueva configuracion
 systemctl restart mongod 
-# &&
+
+logger "Esperando a que mongod responda..."
+
+# Esperando a que mongod se inicia (despues de 10 intentos, se da por fallido)
 i=0
-while [[ $i -le 10 ]] ; do
+while [[ $i -lt 10 ]] ; do
     if nc -z localhost $PUERTO_MONGOD && [[ $(systemctl is-active mongod) == "active" ]];
     then
         break
@@ -123,8 +126,7 @@ while [[ $i -le 10 ]] ; do
     ((i=i+1))
 done
 
-logger "Esperando a que mongod responda..."
-
+if [[ $i -lt 10 ]]; then 
 #Si el servicio no está corriendo
 mongo admin << CREACION_DE_USUARIO
 db.createUser(
@@ -143,7 +145,10 @@ db.createUser(
     }
 )
 CREACION_DE_USUARIO
-
-logger "El usuario ${USUARIO} ha sido creado con exito!"
+    logger "El usuario ${USUARIO} ha sido creado con exito!"
+else 
+    logger "Ha surgido un error al iniciar el servicio de mongoDB. Compruebe el fichero de configuración"
+    echo "Ha surgido un error al iniciar el servicio de mongoDB. Compruebe el fichero de configuración"
+fi
 
 exit 0

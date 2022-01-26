@@ -107,7 +107,7 @@ storage:
 net:
     port: ${PUERTO_MONGOD}
 security:
-    authorization: enabled
+    authorization: disabled
 MONGOD_CONF
 ) > /etc/mongod.conf
 # Reiniciar el servicio de mongod para aplicar la nueva configuracion

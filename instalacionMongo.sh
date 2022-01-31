@@ -3,12 +3,9 @@ set -e
 logger "Arrancando instalacion y configuracion de MongoDB"
 USO="Uso : install.sh [opciones]
 Ejemplo:
-install.sh -u administrador -p password [-n 27017]
+instalacionMongo.sh --f config.ini
 Opciones:
--f archivo de configuración
--u usuario
--p password
--n numero de puerto (opcional)
+-f archivo de configuración (user, password, port (opcional))
 -a muestra esta ayuda
 "
 
@@ -20,15 +17,16 @@ function ayuda() {
         fi
 }
 # Gestionar los argumentos
-while getopts ":f:a" OPCION
+while getopts "f:a" OPCION
 do
     case ${OPCION} in
         f ) ARCHIVO=$OPTARG
-           echo "PARAMETRO DE ARCHIVO EXTABLECIDO CON '${ARCHIVO}'";;
+           echo "PARAMETRO DE ARCHIVO ESTABLECIDO CON '${ARCHIVO}'";;
         a ) ayuda; exit 0;;
         : ) ayuda "Falta el parametro para -$OPTARG"; exit 1;; \?) ayuda "La opcion no existe : $OPTARG"; exit 1;;
     esac
 done
+
 #Comprobar las variables del archivo de configuración
 if [[ ! -z ${ARCHIVO} ]]; then
     if [[ -f ${ARCHIVO} ]]; then
@@ -45,7 +43,7 @@ fi
 
 if [ -z ${user} ]
     then
-        ayuda "El usuario (-u) debe ser especificado"; exit 1
+        ayuda "El usuario (user / -u) debe ser especificado"; exit 1
 fi
 if [ -z ${password} ]
     then
@@ -53,7 +51,7 @@ if [ -z ${password} ]
 fi
 if [ -z ${port} ] 
     then
-        PUERTO_MONGOD=27017
+        port=27017
 fi
 
 # Preparar el repositorio (apt-get) de mongodb añadir su clave apt
@@ -108,8 +106,9 @@ logger "Esperando a que mongod responda..."
 
 # Esperando a que mongod se inicia (despues de 10 intentos, se da por fallido)
 i=0
-while [[ ! -z ${mongo admin --eval db.serverStatus()} ]] ; do
-    trap "sleep 1; ((i=i+1))"
+until [[ $(mongo admin --quiet --eval "db.serverStatus().ok" 2> /dev/null) -eq 1 && i -lt 10 ]]
+do
+    sleep 1; ((i=i+1))
 done
 
 if [[ $i -lt 10 ]]; then 

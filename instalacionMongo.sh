@@ -20,15 +20,9 @@ function ayuda() {
         fi
 }
 # Gestionar los argumentos
-while getopts ":u:p:n:f:a" OPCION
+while getopts ":f:a" OPCION
 do
     case ${OPCION} in
-        u ) USUARIO=$OPTARG
-           echo "Parametro USUARIO establecido con '${USUARIO}'";;
-        p ) PASSWORD=$OPTARG
-           echo "Parametro PASSWORD establecido";;
-        n ) PUERTO_MONGOD=$OPTARG
-           echo "Parametro PUERTO_MONGOD establecido con '${PUERTO_MONGOD}'";;
         f ) ARCHIVO=$OPTARG
            echo "PARAMETRO DE ARCHIVO EXTABLECIDO CON '${ARCHIVO}'";;
         a ) ayuda; exit 0;;
@@ -41,9 +35,6 @@ if [[ ! -z ${ARCHIVO} ]]; then
         extension="${ARCHIVO##*.}"
         if [[ ${extension} == "ini" ]]; then
             source $ARCHIVO
-            USUARIO=$user
-            PASSWORD=$password
-            PUERTO_MONGOD=$port 
         else
             echo "el archivo de configuración no tiene el formato correcto"
         fi
@@ -52,15 +43,15 @@ if [[ ! -z ${ARCHIVO} ]]; then
     fi
 fi
 
-if [ -z ${USUARIO} ]
+if [ -z ${user} ]
     then
         ayuda "El usuario (-u) debe ser especificado"; exit 1
 fi
-if [ -z ${PASSWORD} ]
+if [ -z ${password} ]
     then
         echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | tee /etc/apt/sources.list.d/mongodb.list
 fi
-if [ -z ${PUERTO_MONGOD} ] 
+if [ -z ${port} ] 
     then
         PUERTO_MONGOD=27017
 fi
@@ -105,7 +96,7 @@ storage:
     journal:
         enabled: true
 net:
-    port: ${PUERTO_MONGOD}
+    port: ${port}
 security:
     authorization: disabled
 MONGOD_CONF
@@ -117,13 +108,8 @@ logger "Esperando a que mongod responda..."
 
 # Esperando a que mongod se inicia (despues de 10 intentos, se da por fallido)
 i=0
-while [[ $i -lt 10 ]] ; do
-    if nc -z localhost $PUERTO_MONGOD && [[ $(systemctl is-active mongod) == "active" ]];
-    then
-        break
-    fi
-    sleep 1
-    ((i=i+1))
+while [[ ! -z ${mongo admin --eval db.serverStatus()} ]] ; do
+    trap "sleep 1; ((i=i+1))"
 done
 
 if [[ $i -lt 10 ]]; then 
@@ -131,8 +117,8 @@ if [[ $i -lt 10 ]]; then
 mongo admin << CREACION_DE_USUARIO
 db.createUser(
     {
-        user: "${USUARIO}",
-        pwd: "${PASSWORD}",
+        user: "${user}",
+        pwd: "${password}",
         roles:[
         {
             role: "root",
@@ -145,7 +131,7 @@ db.createUser(
     }
 )
 CREACION_DE_USUARIO
-    logger "El usuario ${USUARIO} ha sido creado con exito!"
+    logger "El usuario ${user} ha sido creado con exito!"
 else 
     logger "Ha surgido un error al iniciar el servicio de mongoDB. Compruebe el fichero de configuración"
     echo "Ha surgido un error al iniciar el servicio de mongoDB. Compruebe el fichero de configuración"

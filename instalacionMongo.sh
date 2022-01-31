@@ -41,7 +41,7 @@ fi
 
 if [ -z ${user} ]
     then
-        ayuda "El usuario (user / -u) debe ser especificado"; exit 1
+        ayuda "El usuario (user) debe ser especificado"; exit 1
 fi
 if [ -z ${password} ]
     then

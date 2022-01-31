@@ -28,18 +28,16 @@ do
 done
 
 #Comprobar las variables del archivo de configuración
-if [[ ! -z ${ARCHIVO} ]]; then
-    if [[ -f ${ARCHIVO} ]]; then
-        extension="${ARCHIVO##*.}"
-        if [[ ${extension} == "ini" ]]; then
-            source $ARCHIVO
-        else
-            echo "el archivo de configuración no tiene el formato correcto"
-        fi
+if [[ ! -z ${ARCHIVO} || -f ${ARCHIVO}]]; then
+    if [[ "${ARCHIVO}" =~ .*\ini$ ]]; then
+        source $ARCHIVO
     else
-        echo "el archivo de configuración es incorrecto"
+        echo "el archivo de configuración no tiene el formato correcto"
     fi
+else
+    ayuda "El archivo de configuración debe ser especificado (-f *.ini) debe ser especificado"; exit 1
 fi
+
 
 if [ -z ${user} ]
     then

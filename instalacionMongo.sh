@@ -34,7 +34,7 @@ do
 done
 
 #Comprobar las variables del archivo de configuración
-if [[ ! -z ${ARCHIVO} || -f ${ARCHIVO}]]; then
+if [[ ! -z ${ARCHIVO} || -f ${ARCHIVO} ]]; then
     if [[ "${ARCHIVO}" =~ .*\ini$ ]]; then
         source $ARCHIVO
     else

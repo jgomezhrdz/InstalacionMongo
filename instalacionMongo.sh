@@ -16,6 +16,12 @@ function ayuda() {
         echo ${1}
         fi
 }
+
+function mongoRunning() {
+    mongo admin --quiet --eval "db.serverStatus().ok" 2>&1 > /dev/null
+    echo $?
+}
+
 # Gestionar los argumentos
 while getopts "f:a" OPCION
 do
@@ -106,7 +112,7 @@ logger "Esperando a que mongod responda..."
 
 # Esperando a que mongod se inicia (despues de 10 intentos, se da por fallido)
 i=0
-until [[ $(mongo admin --quiet --eval "db.serverStatus().ok" 2> /dev/null) -eq 1 && i -lt 10 ]]
+until [[ $(mongoRunning) -eq "0" || i -gt 10 ]]
 do
     sleep 1; ((i=i+1))
 done

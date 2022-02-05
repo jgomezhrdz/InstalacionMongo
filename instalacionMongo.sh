@@ -17,6 +17,7 @@ function ayuda() {
         fi
 }
 
+#Funcion para comprobar si mongo está en ejecución --> 0: True, 1: False
 function mongoRunning() {
     mongo admin --quiet --eval "db.serverStatus().ok" 2>&1 > /dev/null
     echo $?
@@ -33,7 +34,7 @@ do
     esac
 done
 
-#Comprobar las variables del archivo de configuración
+# Comprobar las variables del archivo de configuración
 if [[ ! -z ${ARCHIVO} || -f ${ARCHIVO} ]]; then
     if [[ "${ARCHIVO}" =~ .*\ini$ ]]; then
         source $ARCHIVO
@@ -44,7 +45,7 @@ else
     ayuda "El archivo de configuración debe ser especificado (-f *.ini) debe ser especificado"; exit 1
 fi
 
-
+#Comprobar si los valores están correctamente establecidos
 if [ -z ${user} ]
     then
         ayuda "El usuario (user) debe ser especificado"; exit 1
@@ -116,7 +117,7 @@ do
 done
 
 if [[ $i -lt 10 ]]; then 
-#Si el servicio no está corriendo
+#Si el servicio no está corriendo --> ha superado el timeout del bucle
 mongo admin << CREACION_DE_USUARIO
 db.createUser(
     {

@@ -1,5 +1,0 @@
-2022-02-05T14:27:02.861+0100 E  QUERY    [js] Error: couldn't connect to server 127.0.0.1:27017, connection attempt failed: SocketException: Error connecting to 127.0.0.1:27017 :: caused by :: Connection refused :
-connect@src/mongo/shell/mongo.js:341:17
-@(connect):3:6
-2022-02-05T14:27:02.875+0100 F  -        [main] exception: connect failed
-2022-02-05T14:27:02.875+0100 E  -        [main] exiting with code 1
